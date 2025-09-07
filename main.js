@@ -1,12 +1,12 @@
 // @ts-check
 
-/** This is a Hello World function
-* @param {number} x - The first number input
-* @param {number} y - The second number input
-* @returns The two parameters added together
-* **/
-function addNumbers(x, y) {
-	return x + y;
+function pressButton() {
+	console.log("The button has been pressed");
 }
 
-console.log(addNumbers(10, 10));
+document.addEventListener('DOMContentLoaded', () => {
+	const myButton = document.getElementById("testButton");
+	if (myButton) {
+		myButton.addEventListener('click', pressButton);
+	}
+});
