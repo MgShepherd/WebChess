@@ -1,0 +1,9 @@
+#board {
+	width: 80%;
+	aspect-ratio: 1;
+	display: grid;
+	grid-template-columns: repeat(8, auto);
+	grid-template-rows: repeat(8, auto);
+	box-sizing: content-box;
+	border: 10px solid black;
+}
