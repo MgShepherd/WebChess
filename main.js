@@ -5,7 +5,7 @@ const BOARD_DIMENSION = 8;
 /**
  * @enum {string}
  */
-const Piece = {
+const PieceType = {
 	PAWN: "pawn",
 	ROOK: "rook",
 	KNIGHT: "knight",
@@ -23,8 +23,20 @@ const Color = {
 }
 
 /**
- * Gets the background color based on the piece color provided
- * @param {Color} color - The piece color
+ * @typedef {Object} Piece
+ * @property {PieceType} type
+ * @property {Color} color
+ */
+
+/**
+ * @typedef {Object} BoardSquare
+ * @property {Piece|null} piece
+ * @property {Color} color
+ */
+
+/**
+ * Gets the background color based on the square color provided
+ * @param {Color} color - The square color
  * @returns {string} - The background color to use
  */
 function getBackgroundColor(color) {
@@ -35,17 +47,10 @@ function getBackgroundColor(color) {
 	}
 }
 
-/**
- * @typedef {Object} BoardSquare
- * @property {Piece|null} piece
- * @property {boolean} active
- * @property {Color} color
- */
-
 /** @type {(BoardSquare)[][]} */
 let board = Array.from({ length: BOARD_DIMENSION }, () => Array(BOARD_DIMENSION));
-/** @type {number[]} */
-let activeIdxs = [];
+/** @type {number} */
+let activeIdx = -1;
 
 /**
  * Performs required updates when one of the board squares has been clicked
@@ -54,21 +59,30 @@ let activeIdxs = [];
  * @param {number} col - The col of the square that was clicked
  */
 function handleSquareClicked(target, row, col) {
-	activeIdxs.push(row * BOARD_DIMENSION + col);
+	if (activeIdx != -1) {
+		let activeRow = Math.floor(activeIdx / BOARD_DIMENSION);
+		let activeCol = activeIdx - (activeRow * BOARD_DIMENSION);
+		let activeSquare = document.getElementById(`Square${activeRow}${activeCol}`);
+		if (activeSquare != null) {
+			activeSquare.style.backgroundColor = getBackgroundColor(board[activeRow][activeCol].color);
+		}
+	}
 	if (target instanceof HTMLElement) {
 		target.style.backgroundColor = 'red';
+		activeIdx = row * BOARD_DIMENSION + col;
 	}
 }
 
 /**
  * Adds the specified piece onto a board location
  * @param {Piece} piece - Which chess piece we are wanting to add
- * @param {Color} color - Whether this is a black or white piece
  * @returns {HTMLImageElement} - The created piece image
  */
-function createPieceImg(piece, color) {
+function createPieceImg(piece) {
 	const pieceImg = document.createElement("img");
-	pieceImg.src = `public/pieces/${piece}${color}.svg`;
+	pieceImg.style.backgroundColor = 'transparent';
+	pieceImg.style.pointerEvents = "none";
+	pieceImg.src = `public/pieces/${piece.type}${piece.color}.svg`;
 	return pieceImg;
 }
 
@@ -77,39 +91,46 @@ function createPieceImg(piece, color) {
  * Creates the piece to go at a specified location on the back row
  * @param {number} col - The column index where we are adding the piece
  * @param {Color} color - Whether this is a black or white piece
- * @returns {HTMLImageElement} - The created piece image
+ * @returns {Piece} - The created piece image
  */
 function createBackRowElement(col, color) {
+	let pieceType = PieceType.PAWN;
 	switch (col) {
 		case 0:
 		case BOARD_DIMENSION - 1:
-			return createPieceImg(Piece.ROOK, color);
+			pieceType = PieceType.ROOK;
+			break;
 		case 1:
 		case BOARD_DIMENSION - 2:
-			return createPieceImg(Piece.KNIGHT, color);
+			pieceType = PieceType.KNIGHT;
+			break;
 		case 2:
 		case BOARD_DIMENSION - 3:
-			return createPieceImg(Piece.BISHOP, color);
+			pieceType = PieceType.BISHOP;
+			break;
 		case 3:
-			return createPieceImg(Piece.QUEEN, color);
+			pieceType = PieceType.QUEEN;
+			break;
 		case 4:
-			return createPieceImg(Piece.KING, color);
+			pieceType = PieceType.KING;
+			break;
 		default:
 			throw new Error(`Unexpected column number ${col} encounted. This should not be possible`);
 	}
+	return { type: pieceType, color };
 }
 
 /**
  * Creates the Piece for specific board square
  * @param {number} row - The row number of the current square
  * @param {number} col - The col number of the current square
- * @returns {HTMLImageElement | null} - The created piece image, or null if none should be added
+ * @returns {Piece | null} - The created piece image, or null if none should be added
  */
-function getPieceForSquare(row, col) {
+function createPieceForSquare(row, col) {
 	if (row == BOARD_DIMENSION - 2) {
-		return createPieceImg(Piece.PAWN, Color.WHITE);
+		return { type: PieceType.PAWN, color: Color.WHITE };
 	} else if (row == 1) {
-		return createPieceImg(Piece.PAWN, Color.BLACK);
+		return { type: PieceType.PAWN, color: Color.BLACK };
 	} else if (row == BOARD_DIMENSION - 1) {
 		return createBackRowElement(col, Color.WHITE);
 	} else if (row == 0) {
@@ -136,10 +157,15 @@ function createBoardSquare(row, col) {
 	const color = (row + col) % 2 == 0 ? Color.WHITE : Color.BLACK;
 	square.style.backgroundColor = getBackgroundColor(color);
 
-	let piece = getPieceForSquare(row, col);
+	let piece = createPieceForSquare(row, col);
+	board[row][col] = {
+		piece,
+		color
+	};
 	if (piece != null) {
-		square.appendChild(piece);
+		square.appendChild(createPieceImg(piece));
 	}
+
 	return square;
 }
 
