@@ -31,7 +31,8 @@ const Color = {
 /**
  * @typedef {Object} BoardSquare
  * @property {Piece|null} piece
- * @property {Color} color
+ * @property {boolean} active
+ * @property {string} backgroundColor
  */
 
 /**
@@ -53,23 +54,36 @@ let board = Array.from({ length: BOARD_DIMENSION }, () => Array(BOARD_DIMENSION)
 let activeIdx = -1;
 
 /**
- * Performs required updates when one of the board squares has been clicked
- * @param {EventTarget} target - The event where the 
- * @param {number} row - The row of the square that was clicked
- * @param {number} col - The col of the square that was clicked
+ * Clears the previous active square
  */
-function handleSquareClicked(target, row, col) {
+function clearPreviousActive() {
 	if (activeIdx != -1) {
 		let activeRow = Math.floor(activeIdx / BOARD_DIMENSION);
 		let activeCol = activeIdx - (activeRow * BOARD_DIMENSION);
 		let activeSquare = document.getElementById(`Square${activeRow}${activeCol}`);
 		if (activeSquare != null) {
-			activeSquare.style.backgroundColor = getBackgroundColor(board[activeRow][activeCol].color);
+			activeSquare.style.backgroundColor = board[activeRow][activeCol].backgroundColor;
+			board[activeRow][activeCol].active = false;
 		}
 	}
-	if (target instanceof HTMLElement) {
+}
+
+/**
+ * Performs required updates when one of the board squares has been clicked
+ * @param {EventTarget} target - The element that was clicked
+ * @param {number} row - The row of the square that was clicked
+ * @param {number} col - The col of the square that was clicked
+ */
+function handleSquareClicked(target, row, col) {
+	board[row][col].active = !board[row][col].active;
+	clearPreviousActive();
+
+	if (target instanceof HTMLElement && board[row][col].active) {
 		target.style.backgroundColor = 'red';
 		activeIdx = row * BOARD_DIMENSION + col;
+	} else if (target instanceof HTMLElement) {
+		target.style.backgroundColor = board[row][col].backgroundColor;
+		activeIdx = -1;
 	}
 }
 
@@ -155,12 +169,14 @@ function createBoardSquare(row, col) {
 		}
 	});
 	const color = (row + col) % 2 == 0 ? Color.WHITE : Color.BLACK;
-	square.style.backgroundColor = getBackgroundColor(color);
+	const backgroundColor = getBackgroundColor(color);
+	square.style.backgroundColor = backgroundColor;
 
 	let piece = createPieceForSquare(row, col);
 	board[row][col] = {
 		piece,
-		color
+		backgroundColor,
+		active: false
 	};
 	if (piece != null) {
 		square.appendChild(createPieceImg(piece));
@@ -176,6 +192,12 @@ function createBoard() {
 	const boardElement = document.getElementById("board");
 
 	if (boardElement != null) {
+		if (screen.availWidth > screen.availHeight) {
+			boardElement.style.width = "80%";
+		} else {
+			boardElement.style.height = "80%";
+		}
+
 		for (let row = 0; row < BOARD_DIMENSION; row++) {
 			for (let col = 0; col < BOARD_DIMENSION; col++) {
 				boardElement.appendChild(createBoardSquare(row, col));
