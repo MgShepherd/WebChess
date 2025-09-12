@@ -8,20 +8,20 @@ const ACTIVE_COLOR = "red";
  * @enum {string}
  */
 const PieceType = {
-	PAWN: "pawn",
-	ROOK: "rook",
-	KNIGHT: "knight",
-	BISHOP: "bishop",
-	QUEEN: "queen",
-	KING: "king"
+    PAWN: "pawn",
+    ROOK: "rook",
+    KNIGHT: "knight",
+    BISHOP: "bishop",
+    QUEEN: "queen",
+    KING: "king"
 };
 
 /**
  * @enum {string}
  */
 const Color = {
-	BLACK: "black",
-	WHITE: "white"
+    BLACK: "black",
+    WHITE: "white"
 }
 
 /**
@@ -50,11 +50,11 @@ const Color = {
  * @returns {string} - The background color to use
  */
 function getBackgroundColor(color) {
-	switch (color) {
-		case Color.WHITE: return "#f0d9b5";
-		case Color.BLACK: return "#b58863";
-		default: throw new Error(`Unknown Color value encountered: ${color}. This should not be possible`);
-	}
+    switch (color) {
+    case Color.WHITE: return "#f0d9b5";
+    case Color.BLACK: return "#b58863";
+    default: throw new Error(`Unknown Color value encountered: ${color}. This should not be possible`);
+    }
 }
 
 /** @type {(BoardSquare)[][]} */
@@ -68,16 +68,17 @@ let moveablePositions = [];
  * Checks that a given location would be a valid move and if so will highlight the square
  * @param {number} row - The row number of the potential move
  * @param {number} col - The col number of the potential move
+ * @returns {boolean} - Whether the move was valid or not
  */
 function checkAndSetPotentialMove(row, col) {
-	if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
-		let element = document.getElementById(`Square${row}${col}`);
-		if (element != null) {
-			element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
-			board[row][col].moveable = true;
-			moveablePositions.push({ row, col });
-		}
+    if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
+	let element = document.getElementById(`Square${row}${col}`);
+	if (element != null) {
+	    element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
+	    board[row][col].moveable = true;
+	    moveablePositions.push({ row, col });
 	}
+    }
 }
 
 /**
@@ -87,83 +88,83 @@ function checkAndSetPotentialMove(row, col) {
  * @param {number} col - The col number the piece is at
  */
 function displayPotentialMoves(piece, row, col) {
-	switch (piece.type) {
-		case PieceType.PAWN:
-			if (piece.color == Color.WHITE) {
-				checkAndSetPotentialMove(row - 1, col);
-			} else {
-				checkAndSetPotentialMove(row + 1, col);
-			}
-			break;
-		case PieceType.ROOK:
-			for (let i = 1; i < BOARD_DIMENSION; i++) {
-				checkAndSetPotentialMove(row, col - i);
-				checkAndSetPotentialMove(row, col + i);
-				checkAndSetPotentialMove(row - i, col);
-				checkAndSetPotentialMove(row + i, col);
-			}
-			break;
-		case PieceType.KNIGHT:
-			for (let i = 1; i <= 2; i++) {
-				let colAmount = i == 1 ? 2 : 1;
-				checkAndSetPotentialMove(row - i, col - colAmount);
-				checkAndSetPotentialMove(row - i, col + colAmount);
-				checkAndSetPotentialMove(row + i, col - colAmount);
-				checkAndSetPotentialMove(row + i, col + colAmount);
-			}
-			break;
-		case PieceType.BISHOP:
-			for (let i = 1; i < BOARD_DIMENSION; i++) {
-				checkAndSetPotentialMove(row - i, col - i);
-				checkAndSetPotentialMove(row - i, col + i);
-				checkAndSetPotentialMove(row + i, col + i);
-				checkAndSetPotentialMove(row + i, col - i);
-			}
-			break;
-		case PieceType.QUEEN:
-			for (let i = 1; i < BOARD_DIMENSION; i++) {
-				checkAndSetPotentialMove(row - i, col - i);
-				checkAndSetPotentialMove(row - i, col + i);
-				checkAndSetPotentialMove(row + i, col + i);
-				checkAndSetPotentialMove(row + i, col - i);
-				checkAndSetPotentialMove(row, col - i);
-				checkAndSetPotentialMove(row, col + i);
-				checkAndSetPotentialMove(row - i, col);
-				checkAndSetPotentialMove(row + i, col);
-			}
-			break;
-		case PieceType.KING:
-			for (let r = row - 1; r <= row + 1; r++) {
-				for (let c = col - 1; c <= col + 1; c++) {
-					if (r != row || c != col) {
-						checkAndSetPotentialMove(r, c);
-					}
-				}
-			}
-			break
-		default:
-			throw new Error("Unexpected Piece type encountered. This should not be possible");
+    switch (piece.type) {
+    case PieceType.PAWN:
+	if (piece.color == Color.WHITE) {
+	    checkAndSetPotentialMove(row - 1, col);
+	} else {
+	    checkAndSetPotentialMove(row + 1, col);
 	}
+	break;
+    case PieceType.ROOK:
+	for (let i = 1; i < BOARD_DIMENSION; i++) {
+	    checkAndSetPotentialMove(row, col - i);
+	    checkAndSetPotentialMove(row, col + i);
+	    checkAndSetPotentialMove(row - i, col);
+	    checkAndSetPotentialMove(row + i, col);
+	}
+	break;
+    case PieceType.KNIGHT:
+	for (let i = 1; i <= 2; i++) {
+	    let colAmount = i == 1 ? 2 : 1;
+	    checkAndSetPotentialMove(row - i, col - colAmount);
+	    checkAndSetPotentialMove(row - i, col + colAmount);
+	    checkAndSetPotentialMove(row + i, col - colAmount);
+	    checkAndSetPotentialMove(row + i, col + colAmount);
+	}
+	break;
+    case PieceType.BISHOP:
+	for (let i = 1; i < BOARD_DIMENSION; i++) {
+	    checkAndSetPotentialMove(row - i, col - i);
+	    checkAndSetPotentialMove(row - i, col + i);
+	    checkAndSetPotentialMove(row + i, col + i);
+	    checkAndSetPotentialMove(row + i, col - i);
+	}
+	break;
+    case PieceType.QUEEN:
+	for (let i = 1; i < BOARD_DIMENSION; i++) {
+	    checkAndSetPotentialMove(row - i, col - i);
+	    checkAndSetPotentialMove(row - i, col + i);
+	    checkAndSetPotentialMove(row + i, col + i);
+	    checkAndSetPotentialMove(row + i, col - i);
+	    checkAndSetPotentialMove(row, col - i);
+	    checkAndSetPotentialMove(row, col + i);
+	    checkAndSetPotentialMove(row - i, col);
+	    checkAndSetPotentialMove(row + i, col);
+	}
+	break;
+    case PieceType.KING:
+	for (let r = row - 1; r <= row + 1; r++) {
+	    for (let c = col - 1; c <= col + 1; c++) {
+		if (r != row || c != col) {
+		    checkAndSetPotentialMove(r, c);
+		}
+	    }
+	}
+	break
+    default:
+	throw new Error("Unexpected Piece type encountered. This should not be possible");
+    }
 }
 
 /**
  * Clears the previous active square
  */
 function clearPreviousActive() {
-	if (activePos != null) {
-		let activeSquare = document.getElementById(`Square${activePos.row}${activePos.col}`);
-		if (activeSquare != null) {
-			activeSquare.style.backgroundColor = board[activePos.row][activePos.col].backgroundColor;
-			board[activePos.row][activePos.col].active = false;
-		}
-		moveablePositions.forEach((pos) => {
-			let element = document.getElementById(`Square${pos.row}${pos.col}`);
-			if (element != null) {
-				element.style.backgroundColor = board[pos.row][pos.col].backgroundColor;
-			}
-		});
-		moveablePositions = [];
+    if (activePos != null) {
+	let activeSquare = document.getElementById(`Square${activePos.row}${activePos.col}`);
+	if (activeSquare != null) {
+	    activeSquare.style.backgroundColor = board[activePos.row][activePos.col].backgroundColor;
+	    board[activePos.row][activePos.col].active = false;
 	}
+	moveablePositions.forEach((pos) => {
+	    let element = document.getElementById(`Square${pos.row}${pos.col}`);
+	    if (element != null) {
+		element.style.backgroundColor = board[pos.row][pos.col].backgroundColor;
+	    }
+	});
+	moveablePositions = [];
+    }
 }
 
 /**
@@ -173,19 +174,19 @@ function clearPreviousActive() {
  * @param {number} col - The col of the square that was clicked
  */
 function handleSquareClicked(target, row, col) {
-	board[row][col].active = !board[row][col].active;
-	clearPreviousActive();
+    board[row][col].active = !board[row][col].active;
+    clearPreviousActive();
 
-	if (target instanceof HTMLElement && board[row][col].active) {
-		target.style.backgroundColor = ACTIVE_COLOR;
-		if (board[row][col].piece != null) {
-			displayPotentialMoves(board[row][col].piece, row, col);
-		}
-		activePos = { row, col };
-	} else if (target instanceof HTMLElement) {
-		target.style.backgroundColor = board[row][col].backgroundColor;
-		activePos = null;
+    if (target instanceof HTMLElement && board[row][col].active) {
+	target.style.backgroundColor = ACTIVE_COLOR;
+	if (board[row][col].piece != null) {
+	    displayPotentialMoves(board[row][col].piece, row, col);
 	}
+	activePos = { row, col };
+    } else if (target instanceof HTMLElement) {
+	target.style.backgroundColor = board[row][col].backgroundColor;
+pp	activePos = null;
+    }
 }
 
 /**
@@ -194,11 +195,11 @@ function handleSquareClicked(target, row, col) {
  * @returns {HTMLImageElement} - The created piece image
  */
 function createPieceImg(piece) {
-	const pieceImg = document.createElement("img");
-	pieceImg.style.backgroundColor = 'transparent';
-	pieceImg.style.pointerEvents = "none";
-	pieceImg.src = `public/pieces/${piece.type}${piece.color}.svg`;
-	return pieceImg;
+    const pieceImg = document.createElement("img");
+    pieceImg.style.backgroundColor = 'transparent';
+    pieceImg.style.pointerEvents = "none";
+    pieceImg.src = `public/pieces/${piece.type}${piece.color}.svg`;
+    return pieceImg;
 }
 
 
@@ -209,30 +210,30 @@ function createPieceImg(piece) {
  * @returns {Piece} - The created piece image
  */
 function createBackRowElement(col, color) {
-	let pieceType = PieceType.PAWN;
-	switch (col) {
-		case 0:
-		case BOARD_DIMENSION - 1:
-			pieceType = PieceType.ROOK;
-			break;
-		case 1:
-		case BOARD_DIMENSION - 2:
-			pieceType = PieceType.KNIGHT;
-			break;
-		case 2:
-		case BOARD_DIMENSION - 3:
-			pieceType = PieceType.BISHOP;
-			break;
-		case 3:
-			pieceType = PieceType.QUEEN;
-			break;
-		case 4:
-			pieceType = PieceType.KING;
-			break;
-		default:
-			throw new Error(`Unexpected column number ${col} encounted. This should not be possible`);
-	}
-	return { type: pieceType, color };
+    let pieceType = PieceType.PAWN;
+    switch (col) {
+    case 0:
+    case BOARD_DIMENSION - 1:
+	pieceType = PieceType.ROOK;
+	break;
+    case 1:
+    case BOARD_DIMENSION - 2:
+	pieceType = PieceType.KNIGHT;
+	break;
+    case 2:
+    case BOARD_DIMENSION - 3:
+	pieceType = PieceType.BISHOP;
+	break;
+    case 3:
+	pieceType = PieceType.QUEEN;
+	break;
+    case 4:
+	pieceType = PieceType.KING;
+	break;
+    default:
+	throw new Error(`Unexpected column number ${col} encounted. This should not be possible`);
+    }
+    return { type: pieceType, color };
 }
 
 /**
@@ -242,16 +243,16 @@ function createBackRowElement(col, color) {
  * @returns {Piece | null} - The created piece image, or null if none should be added
  */
 function createPieceForSquare(row, col) {
-	if (row == BOARD_DIMENSION - 2) {
-		return { type: PieceType.PAWN, color: Color.WHITE };
-	} else if (row == 1) {
-		return { type: PieceType.PAWN, color: Color.BLACK };
-	} else if (row == BOARD_DIMENSION - 1) {
-		return createBackRowElement(col, Color.WHITE);
-	} else if (row == 0) {
-		return createBackRowElement(col, Color.BLACK);
-	}
-	return null;
+    if (row == BOARD_DIMENSION - 2) {
+	return { type: PieceType.PAWN, color: Color.WHITE };
+    } else if (row == 1) {
+	return { type: PieceType.PAWN, color: Color.BLACK };
+    } else if (row == BOARD_DIMENSION - 1) {
+	return createBackRowElement(col, Color.WHITE);
+    } else if (row == 0) {
+	return createBackRowElement(col, Color.BLACK);
+    }
+    return null;
 }
 
 /**
@@ -261,53 +262,53 @@ function createPieceForSquare(row, col) {
  * @returns {HTMLDivElement} - The created board square
  */
 function createBoardSquare(row, col) {
-	const square = document.createElement("div");
-	square.classList.add('boardSquare');
-	square.id = `Square${row}${col}`;
-	square.addEventListener("click", (event) => {
-		if (event.target != null) {
-			handleSquareClicked(event.target, row, col)
-		}
-	});
-	const color = (row + col) % 2 == 0 ? Color.WHITE : Color.BLACK;
-	const backgroundColor = getBackgroundColor(color);
-	square.style.backgroundColor = backgroundColor;
-
-	let piece = createPieceForSquare(row, col);
-	board[row][col] = {
-		piece,
-		backgroundColor,
-		active: false,
-		moveable: false
-	};
-	if (piece != null) {
-		square.appendChild(createPieceImg(piece));
+    const square = document.createElement("div");
+    square.classList.add('boardSquare');
+    square.id = `Square${row}${col}`;
+    square.addEventListener("click", (event) => {
+	if (event.target != null) {
+	    handleSquareClicked(event.target, row, col)
 	}
+    });
+    const color = (row + col) % 2 == 0 ? Color.WHITE : Color.BLACK;
+    const backgroundColor = getBackgroundColor(color);
+    square.style.backgroundColor = backgroundColor;
 
-	return square;
+    let piece = createPieceForSquare(row, col);
+    board[row][col] = {
+	piece,
+	backgroundColor,
+	active: false,
+	moveable: false
+    };
+    if (piece != null) {
+	square.appendChild(createPieceImg(piece));
+    }
+
+    return square;
 }
 
 /**
  * Creates and renders the board
  */
 function createBoard() {
-	const boardElement = document.getElementById("board");
+    const boardElement = document.getElementById("board");
 
-	if (boardElement != null) {
-		if (screen.availWidth > screen.availHeight) {
-			boardElement.style.width = "80%";
-		} else {
-			boardElement.style.height = "80%";
-		}
-
-		for (let row = 0; row < BOARD_DIMENSION; row++) {
-			for (let col = 0; col < BOARD_DIMENSION; col++) {
-				boardElement.appendChild(createBoardSquare(row, col));
-			}
-		}
+    if (boardElement != null) {
+	if (screen.availWidth > screen.availHeight) {
+	    boardElement.style.height = "80%";
+	} else {
+	    boardElement.style.width = "80%";
 	}
+
+	for (let row = 0; row < BOARD_DIMENSION; row++) {
+	    for (let col = 0; col < BOARD_DIMENSION; col++) {
+		boardElement.appendChild(createBoardSquare(row, col));
+	    }
+	}
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	createBoard();
+    createBoard();
 });
