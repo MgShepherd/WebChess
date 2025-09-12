@@ -1,6 +1,8 @@
 // @ts-check
 
 const BOARD_DIMENSION = 8;
+const POTENTIAL_MOVE_COLOR = "green";
+const ACTIVE_COLOR = "red";
 
 /**
  * @enum {string}
@@ -23,6 +25,12 @@ const Color = {
 }
 
 /**
+ * @typedef {Object} Position
+ * @property {number} row
+ * @property {number} col
+ */
+
+/**
  * @typedef {Object} Piece
  * @property {PieceType} type
  * @property {Color} color
@@ -32,6 +40,7 @@ const Color = {
  * @typedef {Object} BoardSquare
  * @property {Piece|null} piece
  * @property {boolean} active
+ * @property {boolean} moveable
  * @property {string} backgroundColor
  */
 
@@ -50,21 +59,110 @@ function getBackgroundColor(color) {
 
 /** @type {(BoardSquare)[][]} */
 let board = Array.from({ length: BOARD_DIMENSION }, () => Array(BOARD_DIMENSION));
-/** @type {number} */
-let activeIdx = -1;
+/** @type {Position | null} */
+let activePos = null;
+/** @type {(Position)[]} */
+let moveablePositions = [];
+
+/**
+ * Checks that a given location would be a valid move and if so will highlight the square
+ * @param {number} row - The row number of the potential move
+ * @param {number} col - The col number of the potential move
+ */
+function checkAndSetPotentialMove(row, col) {
+	if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
+		let element = document.getElementById(`Square${row}${col}`);
+		if (element != null) {
+			element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
+			board[row][col].moveable = true;
+			moveablePositions.push({ row, col });
+		}
+	}
+}
+
+/**
+ * Displays the potential moves for a give Piece Type based on its position
+ * @param {Piece} piece - The piece we are displaying the moves for
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayPotentialMoves(piece, row, col) {
+	switch (piece.type) {
+		case PieceType.PAWN:
+			if (piece.color == Color.WHITE) {
+				checkAndSetPotentialMove(row - 1, col);
+			} else {
+				checkAndSetPotentialMove(row + 1, col);
+			}
+			break;
+		case PieceType.ROOK:
+			for (let i = 1; i < BOARD_DIMENSION; i++) {
+				checkAndSetPotentialMove(row, col - i);
+				checkAndSetPotentialMove(row, col + i);
+				checkAndSetPotentialMove(row - i, col);
+				checkAndSetPotentialMove(row + i, col);
+			}
+			break;
+		case PieceType.KNIGHT:
+			for (let i = 1; i <= 2; i++) {
+				let colAmount = i == 1 ? 2 : 1;
+				checkAndSetPotentialMove(row - i, col - colAmount);
+				checkAndSetPotentialMove(row - i, col + colAmount);
+				checkAndSetPotentialMove(row + i, col - colAmount);
+				checkAndSetPotentialMove(row + i, col + colAmount);
+			}
+			break;
+		case PieceType.BISHOP:
+			for (let i = 1; i < BOARD_DIMENSION; i++) {
+				checkAndSetPotentialMove(row - i, col - i);
+				checkAndSetPotentialMove(row - i, col + i);
+				checkAndSetPotentialMove(row + i, col + i);
+				checkAndSetPotentialMove(row + i, col - i);
+			}
+			break;
+		case PieceType.QUEEN:
+			for (let i = 1; i < BOARD_DIMENSION; i++) {
+				checkAndSetPotentialMove(row - i, col - i);
+				checkAndSetPotentialMove(row - i, col + i);
+				checkAndSetPotentialMove(row + i, col + i);
+				checkAndSetPotentialMove(row + i, col - i);
+				checkAndSetPotentialMove(row, col - i);
+				checkAndSetPotentialMove(row, col + i);
+				checkAndSetPotentialMove(row - i, col);
+				checkAndSetPotentialMove(row + i, col);
+			}
+			break;
+		case PieceType.KING:
+			for (let r = row - 1; r <= row + 1; r++) {
+				for (let c = col - 1; c <= col + 1; c++) {
+					if (r != row || c != col) {
+						checkAndSetPotentialMove(r, c);
+					}
+				}
+			}
+			break
+		default:
+			throw new Error("Unexpected Piece type encountered. This should not be possible");
+	}
+}
 
 /**
  * Clears the previous active square
  */
 function clearPreviousActive() {
-	if (activeIdx != -1) {
-		let activeRow = Math.floor(activeIdx / BOARD_DIMENSION);
-		let activeCol = activeIdx - (activeRow * BOARD_DIMENSION);
-		let activeSquare = document.getElementById(`Square${activeRow}${activeCol}`);
+	if (activePos != null) {
+		let activeSquare = document.getElementById(`Square${activePos.row}${activePos.col}`);
 		if (activeSquare != null) {
-			activeSquare.style.backgroundColor = board[activeRow][activeCol].backgroundColor;
-			board[activeRow][activeCol].active = false;
+			activeSquare.style.backgroundColor = board[activePos.row][activePos.col].backgroundColor;
+			board[activePos.row][activePos.col].active = false;
 		}
+		moveablePositions.forEach((pos) => {
+			let element = document.getElementById(`Square${pos.row}${pos.col}`);
+			if (element != null) {
+				element.style.backgroundColor = board[pos.row][pos.col].backgroundColor;
+			}
+		});
+		moveablePositions = [];
 	}
 }
 
@@ -79,11 +177,14 @@ function handleSquareClicked(target, row, col) {
 	clearPreviousActive();
 
 	if (target instanceof HTMLElement && board[row][col].active) {
-		target.style.backgroundColor = 'red';
-		activeIdx = row * BOARD_DIMENSION + col;
+		target.style.backgroundColor = ACTIVE_COLOR;
+		if (board[row][col].piece != null) {
+			displayPotentialMoves(board[row][col].piece, row, col);
+		}
+		activePos = { row, col };
 	} else if (target instanceof HTMLElement) {
 		target.style.backgroundColor = board[row][col].backgroundColor;
-		activeIdx = -1;
+		activePos = null;
 	}
 }
 
@@ -176,7 +277,8 @@ function createBoardSquare(row, col) {
 	board[row][col] = {
 		piece,
 		backgroundColor,
-		active: false
+		active: false,
+		moveable: false
 	};
 	if (piece != null) {
 		square.appendChild(createPieceImg(piece));
