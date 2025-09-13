@@ -22,7 +22,7 @@ const PieceType = {
 const Color = {
     BLACK: "black",
     WHITE: "white"
-}
+};
 
 /**
  * @typedef {Object} Position
@@ -73,10 +73,105 @@ let moveablePositions = [];
 function checkAndSetPotentialMove(row, col) {
     if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
 	let element = document.getElementById(`Square${row}${col}`);
-	if (element != null) {
+	if (element != null && board[row][col].piece == null) {
 	    element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
 	    board[row][col].moveable = true;
 	    moveablePositions.push({ row, col });
+	    return true;
+	}
+    }
+    return false;
+}
+
+/**
+ * Displays the possible set of moves from a pawn at the current position
+ * @param {Color} color - The color of the piece
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayPawnMoves(color, row, col) {
+    if (color == Color.WHITE) {
+	checkAndSetPotentialMove(row - 1, col);
+    } else {
+	checkAndSetPotentialMove(row + 1, col);
+    }
+}
+
+/**
+ * Displays all the moves in a specified direction
+ * @param {number} row - The starting row number
+ * @param {number} col - The starting col number
+ * @param {number} rowDir - The row movement direction (1, 0 or -1)
+ * @param {number} colDir - The col movement direction (1, 0 or -1)
+ */
+function displayMovesInDirection(row, col, rowDir, colDir) {
+    for (let i = 1; i < BOARD_DIMENSION; i++) {
+	if (!checkAndSetPotentialMove(row - i*rowDir, col - i*colDir)) {
+	    return;
+	}
+    }
+}
+
+/**
+ * Displays the possible set of moves from a rook at the current position
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayRookMoves(row, col) {
+    displayMovesInDirection(row, col, -1, 0);
+    displayMovesInDirection(row, col, 1, 0);
+    displayMovesInDirection(row, col, 0, -1);
+    displayMovesInDirection(row, col, 0, 1);
+}
+
+/**
+ * Displays the possible set of moves from a knight at the current position
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayKnightMoves(row, col) {
+    for (let i = 1; i <= 2; i++) {
+	let colAmount = i == 1 ? 2 : 1;
+	checkAndSetPotentialMove(row - i, col - colAmount);
+	checkAndSetPotentialMove(row - i, col + colAmount);
+	checkAndSetPotentialMove(row + i, col - colAmount);
+	checkAndSetPotentialMove(row + i, col + colAmount);
+    }
+}
+
+/**
+ * Displays the possible set of moves from a bishop at the current position
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayBishopMoves(row, col) {
+    displayMovesInDirection(row, col, 1, 1);
+    displayMovesInDirection(row, col, -1, 1);
+    displayMovesInDirection(row, col, -1, -1);
+    displayMovesInDirection(row, col, 1, -1);
+}
+
+/**
+ * Displays the possible set of moves from a queen at the current position
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayQueenMoves(row, col) {
+    displayBishopMoves(row, col);
+    displayRookMoves(row, col);
+}
+
+/**
+ * Displays the possible set of moves from a king at the current position
+ * @param {number} row - The row number the piece is at
+ * @param {number} col - The col number the piece is at
+ */
+function displayKingMoves(row, col) {
+    for (let r = row - 1; r <= row + 1; r++) {
+	for (let c = col - 1; c <= col + 1; c++) {
+	    if (r != row || c != col) {
+		checkAndSetPotentialMove(r, c);
+	    }
 	}
     }
 }
@@ -90,58 +185,23 @@ function checkAndSetPotentialMove(row, col) {
 function displayPotentialMoves(piece, row, col) {
     switch (piece.type) {
     case PieceType.PAWN:
-	if (piece.color == Color.WHITE) {
-	    checkAndSetPotentialMove(row - 1, col);
-	} else {
-	    checkAndSetPotentialMove(row + 1, col);
-	}
+	displayPawnMoves(piece.color, row, col);
 	break;
     case PieceType.ROOK:
-	for (let i = 1; i < BOARD_DIMENSION; i++) {
-	    checkAndSetPotentialMove(row, col - i);
-	    checkAndSetPotentialMove(row, col + i);
-	    checkAndSetPotentialMove(row - i, col);
-	    checkAndSetPotentialMove(row + i, col);
-	}
+	displayRookMoves(row, col);
 	break;
     case PieceType.KNIGHT:
-	for (let i = 1; i <= 2; i++) {
-	    let colAmount = i == 1 ? 2 : 1;
-	    checkAndSetPotentialMove(row - i, col - colAmount);
-	    checkAndSetPotentialMove(row - i, col + colAmount);
-	    checkAndSetPotentialMove(row + i, col - colAmount);
-	    checkAndSetPotentialMove(row + i, col + colAmount);
-	}
+	displayKnightMoves(row, col);
 	break;
     case PieceType.BISHOP:
-	for (let i = 1; i < BOARD_DIMENSION; i++) {
-	    checkAndSetPotentialMove(row - i, col - i);
-	    checkAndSetPotentialMove(row - i, col + i);
-	    checkAndSetPotentialMove(row + i, col + i);
-	    checkAndSetPotentialMove(row + i, col - i);
-	}
+	displayBishopMoves(row, col);	
 	break;
     case PieceType.QUEEN:
-	for (let i = 1; i < BOARD_DIMENSION; i++) {
-	    checkAndSetPotentialMove(row - i, col - i);
-	    checkAndSetPotentialMove(row - i, col + i);
-	    checkAndSetPotentialMove(row + i, col + i);
-	    checkAndSetPotentialMove(row + i, col - i);
-	    checkAndSetPotentialMove(row, col - i);
-	    checkAndSetPotentialMove(row, col + i);
-	    checkAndSetPotentialMove(row - i, col);
-	    checkAndSetPotentialMove(row + i, col);
-	}
+	displayQueenMoves(row, col);
 	break;
     case PieceType.KING:
-	for (let r = row - 1; r <= row + 1; r++) {
-	    for (let c = col - 1; c <= col + 1; c++) {
-		if (r != row || c != col) {
-		    checkAndSetPotentialMove(r, c);
-		}
-	    }
-	}
-	break
+	displayKingMoves(row, col);
+	break;
     default:
 	throw new Error("Unexpected Piece type encountered. This should not be possible");
     }
@@ -185,7 +245,7 @@ function handleSquareClicked(target, row, col) {
 	activePos = { row, col };
     } else if (target instanceof HTMLElement) {
 	target.style.backgroundColor = board[row][col].backgroundColor;
-pp	activePos = null;
+	activePos = null;
     }
 }
 
