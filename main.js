@@ -74,7 +74,7 @@ let moveablePositions = [];
 function checkAndSetPotentialMove(row, col, pieceColor) {
     if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
 	let element = document.getElementById(`Square${row}${col}`);
-	if (element != null && (board[row][col].piece == null || pieceColor != board[row][col])) {
+	if (element != null && (board[row][col].piece == null || pieceColor != board[row][col].piece.color)) {
 	    element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
 	    board[row][col].moveable = true;
 	    moveablePositions.push({ row, col });
@@ -147,34 +147,37 @@ function displayKnightMoves(row, col, color) {
  * Displays the possible set of moves from a bishop at the current position
  * @param {number} row - The row number the piece is at
  * @param {number} col - The col number the piece is at
+ * @param {Color} color - The color of the piece
  */
-function displayBishopMoves(row, col) {
-    displayMovesInDirection(row, col, 1, 1);
-    displayMovesInDirection(row, col, -1, 1);
-    displayMovesInDirection(row, col, -1, -1);
-    displayMovesInDirection(row, col, 1, -1);
+function displayBishopMoves(row, col, color) {
+    displayMovesInDirection(row, col, 1, 1, color);
+    displayMovesInDirection(row, col, -1, 1, color);
+    displayMovesInDirection(row, col, -1, -1, color);
+    displayMovesInDirection(row, col, 1, -1, color);
 }
 
 /**
  * Displays the possible set of moves from a queen at the current position
  * @param {number} row - The row number the piece is at
  * @param {number} col - The col number the piece is at
+ * @param {Color} color - The color of the piece
  */
-function displayQueenMoves(row, col) {
-    displayBishopMoves(row, col);
-    displayRookMoves(row, col);
+function displayQueenMoves(row, col, color) {
+    displayBishopMoves(row, col, color);
+    displayRookMoves(row, col, color);
 }
 
 /**
  * Displays the possible set of moves from a king at the current position
  * @param {number} row - The row number the piece is at
  * @param {number} col - The col number the piece is at
+ * @param {Color} color - The color of the piece
  */
-function displayKingMoves(row, col) {
+function displayKingMoves(row, col, color) {
     for (let r = row - 1; r <= row + 1; r++) {
 	for (let c = col - 1; c <= col + 1; c++) {
 	    if (r != row || c != col) {
-		checkAndSetPotentialMove(r, c);
+		checkAndSetPotentialMove(r, c, color);
 	    }
 	}
     }
@@ -192,19 +195,19 @@ function displayPotentialMoves(piece, row, col) {
 	displayPawnMoves(piece.color, row, col);
 	break;
     case PieceType.ROOK:
-	displayRookMoves(row, col);
+	displayRookMoves(row, col, piece.color);
 	break;
     case PieceType.KNIGHT:
-	displayKnightMoves(row, col);
+	displayKnightMoves(row, col, piece.color);
 	break;
     case PieceType.BISHOP:
-	displayBishopMoves(row, col);	
+	displayBishopMoves(row, col, piece.color);	
 	break;
     case PieceType.QUEEN:
-	displayQueenMoves(row, col);
+	displayQueenMoves(row, col, piece.color);
 	break;
     case PieceType.KING:
-	displayKingMoves(row, col);
+	displayKingMoves(row, col, piece.color);
 	break;
     default:
 	throw new Error("Unexpected Piece type encountered. This should not be possible");
