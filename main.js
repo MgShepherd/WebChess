@@ -222,8 +222,50 @@ function clearPreviousActive() {
 	    if (element != null) {
 		element.style.backgroundColor = board[pos.row][pos.col].backgroundColor;
 	    }
+	    board[pos.row][pos.col].moveable = false;
 	});
 	moveablePositions = [];
+    }
+}
+
+/**
+ * Performs required updates when one of the board squares has been clicked
+ * @param {HTMLElement} target - The element that was clicked
+ * @param {number} row - The row of the square that was clicked
+ * @param {number} col - The col of the square that was clicked
+ */
+function updateActiveState(target, row, col) {
+    board[row][col].active = !board[row][col].active;
+    clearPreviousActive();
+
+    if (board[row][col].active) {
+	target.style.backgroundColor = ACTIVE_COLOR;
+	if (board[row][col].piece != null) {
+	    displayPotentialMoves(board[row][col].piece, row, col);
+	}
+	activePos = { row, col };
+    } else {
+	target.style.backgroundColor = board[row][col].backgroundColor;
+	activePos = null;
+    }
+}
+
+/**
+ * Performs required updates when one of the board squares has been clicked
+ * @param {HTMLElement} target - The element that was clicked
+ * @param {number} row - The row of the square that was clicked
+ * @param {number} col - The col of the square that was clicked
+ */
+function moveToSelectedPosition(target, row, col) {
+    if (activePos != null) {
+	let activeElement = document.getElementById(`Square${activePos.row}${activePos.col}`);
+	let pieceImg = activeElement.children[0];
+	activeElement.removeChild(pieceImg);
+	board[row][col].piece = board[activePos.row][activePos.col].piece;
+	board[activePos.row][activePos.col].piece = null;
+	target.appendChild(pieceImg);
+	clearPreviousActive();
+	activePos = null;
     }
 }
 
@@ -234,18 +276,12 @@ function clearPreviousActive() {
  * @param {number} col - The col of the square that was clicked
  */
 function handleSquareClicked(target, row, col) {
-    board[row][col].active = !board[row][col].active;
-    clearPreviousActive();
-
-    if (target instanceof HTMLElement && board[row][col].active) {
-	target.style.backgroundColor = ACTIVE_COLOR;
-	if (board[row][col].piece != null) {
-	    displayPotentialMoves(board[row][col].piece, row, col);
+    if (target instanceof HTMLElement) {
+	if (board[row][col].moveable) {
+	    moveToSelectedPosition(target, row, col);
+	} else {
+	    updateActiveState(target, row, col);
 	}
-	activePos = { row, col };
-    } else if (target instanceof HTMLElement) {
-	target.style.backgroundColor = board[row][col].backgroundColor;
-	activePos = null;
     }
 }
 
