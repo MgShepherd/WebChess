@@ -68,16 +68,17 @@ let moveablePositions = [];
  * Checks that a given location would be a valid move and if so will highlight the square
  * @param {number} row - The row number of the potential move
  * @param {number} col - The col number of the potential move
- * @returns {boolean} - Whether the move was valid or not
+ * @param {Color} pieceColor - The color of the selected piece
+ * @returns {boolean} - Whether to continue checking for available moves in this direction
  */
-function checkAndSetPotentialMove(row, col) {
+function checkAndSetPotentialMove(row, col, pieceColor) {
     if (row >= 0 && row < BOARD_DIMENSION && col >= 0 && col < BOARD_DIMENSION) {
 	let element = document.getElementById(`Square${row}${col}`);
-	if (element != null && board[row][col].piece == null) {
+	if (element != null && (board[row][col].piece == null || pieceColor != board[row][col])) {
 	    element.style.backgroundColor = POTENTIAL_MOVE_COLOR;
 	    board[row][col].moveable = true;
 	    moveablePositions.push({ row, col });
-	    return true;
+	    return board[row][col].piece == null;
 	}
     }
     return false;
@@ -91,9 +92,9 @@ function checkAndSetPotentialMove(row, col) {
  */
 function displayPawnMoves(color, row, col) {
     if (color == Color.WHITE) {
-	checkAndSetPotentialMove(row - 1, col);
+	checkAndSetPotentialMove(row - 1, col, color);
     } else {
-	checkAndSetPotentialMove(row + 1, col);
+	checkAndSetPotentialMove(row + 1, col, color);
     }
 }
 
@@ -103,10 +104,11 @@ function displayPawnMoves(color, row, col) {
  * @param {number} col - The starting col number
  * @param {number} rowDir - The row movement direction (1, 0 or -1)
  * @param {number} colDir - The col movement direction (1, 0 or -1)
+ * @param {Color} color - The color of the piece
  */
-function displayMovesInDirection(row, col, rowDir, colDir) {
+function displayMovesInDirection(row, col, rowDir, colDir, color) {
     for (let i = 1; i < BOARD_DIMENSION; i++) {
-	if (!checkAndSetPotentialMove(row - i*rowDir, col - i*colDir)) {
+	if (!checkAndSetPotentialMove(row - i*rowDir, col - i*colDir, color)) {
 	    return;
 	}
     }
@@ -116,26 +118,28 @@ function displayMovesInDirection(row, col, rowDir, colDir) {
  * Displays the possible set of moves from a rook at the current position
  * @param {number} row - The row number the piece is at
  * @param {number} col - The col number the piece is at
+ * @param {Color} color - The color of the piece
  */
-function displayRookMoves(row, col) {
-    displayMovesInDirection(row, col, -1, 0);
-    displayMovesInDirection(row, col, 1, 0);
-    displayMovesInDirection(row, col, 0, -1);
-    displayMovesInDirection(row, col, 0, 1);
+function displayRookMoves(row, col, color) {
+    displayMovesInDirection(row, col, -1, 0, color);
+    displayMovesInDirection(row, col, 1, 0, color);
+    displayMovesInDirection(row, col, 0, -1, color);
+    displayMovesInDirection(row, col, 0, 1, color);
 }
 
 /**
  * Displays the possible set of moves from a knight at the current position
  * @param {number} row - The row number the piece is at
  * @param {number} col - The col number the piece is at
+ * @param {Color} color - The color of the piece
  */
-function displayKnightMoves(row, col) {
+function displayKnightMoves(row, col, color) {
     for (let i = 1; i <= 2; i++) {
 	let colAmount = i == 1 ? 2 : 1;
-	checkAndSetPotentialMove(row - i, col - colAmount);
-	checkAndSetPotentialMove(row - i, col + colAmount);
-	checkAndSetPotentialMove(row + i, col - colAmount);
-	checkAndSetPotentialMove(row + i, col + colAmount);
+	checkAndSetPotentialMove(row - i, col - colAmount, color);
+	checkAndSetPotentialMove(row - i, col + colAmount, color);
+	checkAndSetPotentialMove(row + i, col - colAmount, color);
+	checkAndSetPotentialMove(row + i, col + colAmount, color);
     }
 }
 
@@ -263,6 +267,9 @@ function moveToSelectedPosition(target, row, col) {
 	activeElement.removeChild(pieceImg);
 	board[row][col].piece = board[activePos.row][activePos.col].piece;
 	board[activePos.row][activePos.col].piece = null;
+	if (target.children.length > 0) {
+	    target.removeChild(target.firstChild);
+	}
 	target.appendChild(pieceImg);
 	clearPreviousActive();
 	activePos = null;
