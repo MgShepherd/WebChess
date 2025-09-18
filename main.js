@@ -63,6 +63,8 @@ let board = Array.from({ length: BOARD_DIMENSION }, () => Array(BOARD_DIMENSION)
 let activePos = null;
 /** @type {(Position)[]} */
 let moveablePositions = [];
+/** @type {Color} */
+let turnColor = Color.WHITE;
 
 /**
  * Checks that a given location would be a valid move and if so will highlight the square
@@ -258,6 +260,14 @@ function updateActiveState(target, row, col) {
 }
 
 /**
+ * Switches whose turn it is
+ */
+function switchTurns() {
+	turnColor = turnColor == Color.WHITE ? Color.BLACK : Color.WHITE;
+	updateTurnIndicator();
+}
+
+/**
  * Performs required updates when one of the board squares has been clicked
  * @param {HTMLElement} target - The element that was clicked
  * @param {number} row - The row of the square that was clicked
@@ -276,6 +286,7 @@ function moveToSelectedPosition(target, row, col) {
 		}
 		target.appendChild(pieceImg);
 		clearPreviousActive();
+		switchTurns();
 		activePos = null;
 	}
 }
@@ -290,7 +301,7 @@ function handleSquareClicked(target, row, col) {
 	if (target instanceof HTMLElement) {
 		if (board[row][col].moveable) {
 			moveToSelectedPosition(target, row, col);
-		} else {
+		} else if (board[row][col].piece != null && board[row][col].piece.color == turnColor) {
 			updateActiveState(target, row, col);
 		}
 	}
@@ -402,12 +413,6 @@ function createBoard() {
 	const boardElement = document.getElementById("board");
 
 	if (boardElement != null) {
-		if (screen.availWidth > screen.availHeight) {
-			boardElement.style.height = "80%";
-		} else {
-			boardElement.style.width = "80%";
-		}
-
 		for (let row = 0; row < BOARD_DIMENSION; row++) {
 			for (let col = 0; col < BOARD_DIMENSION; col++) {
 				boardElement.appendChild(createBoardSquare(row, col));
@@ -416,6 +421,19 @@ function createBoard() {
 	}
 }
 
+/**
+	* Sets the turn indicator based on the current turn color
+	*/
+function updateTurnIndicator() {
+	const turnIndicator = document.getElementById("turnIndicator");
+
+	if (turnIndicator != null) {
+		const color = turnColor == Color.WHITE ? "#ffffff" : "#000000";
+		turnIndicator.style.backgroundColor = color;
+	}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+	updateTurnIndicator();
 	createBoard();
 });
